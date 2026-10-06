@@ -7,11 +7,13 @@ from pathlib import Path
 import pandas as pd
 
 from drift_to_deploy.data import batches, download, schema
+from drift_to_deploy.modelling import registry, train
 from drift_to_deploy.params import Params
 
 RAW = Path("data/raw/credit_default.parquet")
 CLEAN = Path("data/clean/credit_default.parquet")
 BATCHES = Path("data/batches")
+REPORT = Path("reports/training.json")
 
 
 def _download(params: Params, args: argparse.Namespace) -> None:
@@ -37,6 +39,17 @@ def _batches(params: Params, args: argparse.Namespace) -> None:
         )
 
 
+def _train(params: Params, args: argparse.Namespace) -> None:
+    registry.configure()
+    result = train.train(pd.read_parquet(args.input), params, reason=args.reason)
+    train.write_report(result, args.report)
+    for c in result.candidates:
+        m = c.metrics
+        print(f"  {c.kind:<9} AUC {m['auc']:.4f}  PR-AUC {m['pr_auc']:.4f}  KS {m['ks']:.3f}  Brier {m['brier']:.4f}")
+    role = "champion and challenger" if result.bootstrapped_champion else "challenger"
+    print(f"Registered {params.model.name} v{result.version} ({result.winner.kind}) as {role}.")
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="d2d", description="drift-to-deploy")
     parser.add_argument("--params", type=Path, default=Path("params.yaml"))
@@ -54,6 +67,12 @@ def main(argv: list[str] | None = None) -> None:
     step.add_argument("--input", type=Path, default=CLEAN)
     step.add_argument("--out", type=Path, default=BATCHES)
     step.set_defaults(run=_batches)
+
+    step = groups.add_parser("train", help="train candidates and register the best as challenger")
+    step.add_argument("--input", type=Path, default=BATCHES / "reference.parquet")
+    step.add_argument("--report", type=Path, default=REPORT)
+    step.add_argument("--reason", default="initial training")
+    step.set_defaults(run=_train)
 
     args = parser.parse_args(argv)
     args.run(Params.load(args.params), args)

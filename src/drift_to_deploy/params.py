@@ -45,11 +45,19 @@ class ConceptScenario(BaseModel):
 Scenario = Annotated[CovariateScenario | PopulationScenario | ConceptScenario, Field(discriminator="kind")]
 
 
+class ModelParams(BaseModel):
+    name: str
+    validation_size: float = Field(gt=0, lt=1)
+    lightgbm: dict[str, float | int] = Field(default_factory=dict)
+    logistic: dict[str, float | int] = Field(default_factory=dict)
+
+
 class Params(BaseModel):
     seed: int
     source: Source
     batches: Batches
     scenarios: list[Scenario] = Field(default_factory=list)
+    model: ModelParams
 
     @classmethod
     def load(cls, path: Path = Path("params.yaml")) -> "Params":

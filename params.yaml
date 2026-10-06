@@ -39,3 +39,20 @@ scenarios:
     start_month: 10
     min_utilisation: 0.8
     flip_probability: 0.3
+
+model:
+  # Name in the MLflow model registry.
+  name: credit-default
+  validation_size: 0.2
+  # Deliberately conservative: a model that generalises beats one that wins the validation set.
+  lightgbm:
+    n_estimators: 300
+    learning_rate: 0.03
+    num_leaves: 15
+    min_child_samples: 80
+    subsample: 0.8
+    subsample_freq: 1
+    colsample_bytree: 0.8
+    reg_lambda: 1.0
+  logistic:
+    C: 0.5

@@ -4,7 +4,7 @@ An automated credit-risk ML lifecycle: a default-prediction model that watches i
 inputs, detects drift, retrains, and is only replaced when a challenger is provably better
 and no customer segment gets worse.
 
-> Work in progress. The data pipeline is done; training, serving, monitoring and promotion
+> Work in progress. Data pipeline and training are done; serving, monitoring and promotion
 > are next.
 
 ## Data pipeline
@@ -34,6 +34,42 @@ replacement, so no one appears in more than one batch.
 The resulting profile per month is in [data/batches/summary.json](data/batches/summary.json).
 
 `sex` and `age` are never model inputs; they are kept only to audit performance per segment.
+
+## Training and the model registry
+
+```bash
+uv run d2d train                 # train candidates on the reference set, register the best
+uv run mlflow ui --backend-store-uri sqlite:///.mlflow/mlflow.db   # browse runs at :5000
+```
+
+Two candidates are trained on the same split and the better one (by validation AUC) is
+registered in MLflow:
+
+| Model | AUC | PR-AUC | KS | Brier |
+| --- | --- | --- | --- | --- |
+| **LightGBM** (registered) | **0.776** | **0.543** | **0.417** | **0.138** |
+| Logistic regression (baseline) | 0.748 | 0.488 | 0.412 | 0.143 |
+
+Full metrics, per-segment AUC and lineage are in [reports/training.json](reports/training.json).
+
+- **The pipeline is the model.** Feature engineering (utilisation ratios, payment ratio,
+  delinquency counts) sits inside the logged scikit-learn pipeline, so serving runs exactly the
+  code training ran.
+- **Aliases, not version numbers.** `champion` serves traffic and `challenger` is the latest
+  candidate. Training only ever moves `challenger`; replacing the champion is the promotion
+  step's job. The very first model becomes champion so there is something to serve.
+- **Lineage.** Every registered version is tagged with a fingerprint of its training data, the
+  git commit and the reason it was trained.
+- **Safe serialisation.** Models are saved with skops rather than pickle, with an explicit
+  allowlist of the types they may contain ([features.py](src/drift_to_deploy/modelling/features.py)).
+
+How the first champion holds up as the simulated world drifts (scored per month):
+
+| Months | AUC | Predicted vs actual default rate |
+| --- | --- | --- |
+| 1–3 (no drift) | 0.77–0.80 | about 21% vs 21% |
+| 4–9 (income squeeze, young customers) | 0.73–0.79 | overpredicts: about 26% vs 22% |
+| 10–12 (utilisation shock) | about 0.71 | underpredicts: about 25% vs 31% |
 
 ## Data source
 

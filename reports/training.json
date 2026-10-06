@@ -1,0 +1,67 @@
+{
+  "registered_version": "1",
+  "became_champion": true,
+  "winner": "lightgbm",
+  "lineage": {
+    "data_fingerprint": "076782f766ff43c9",
+    "data_rows": "12000",
+    "git_commit": "561b7a5-dirty",
+    "reason": "initial training"
+  },
+  "candidates": {
+    "lightgbm": {
+      "auc": 0.7764,
+      "pr_auc": 0.5432,
+      "ks": 0.4172,
+      "brier": 0.1381,
+      "log_loss": 0.436,
+      "calibration_error": 0.0172,
+      "predicted_default_rate": 0.2169,
+      "observed_default_rate": 0.2204
+    },
+    "logistic": {
+      "auc": 0.7483,
+      "pr_auc": 0.488,
+      "ks": 0.4118,
+      "brier": 0.1432,
+      "log_loss": 0.4509,
+      "calibration_error": 0.0193,
+      "predicted_default_rate": 0.2186,
+      "observed_default_rate": 0.2204
+    }
+  },
+  "winner_segments": {
+    "age_band:30_to_44": {
+      "auc": 0.7737,
+      "n": 1212
+    },
+    "age_band:45_plus": {
+      "auc": 0.7518,
+      "n": 458
+    },
+    "age_band:under_30": {
+      "auc": 0.7941,
+      "n": 730
+    },
+    "sex:female": {
+      "auc": 0.7698,
+      "n": 1466
+    },
+    "sex:male": {
+      "auc": 0.7827,
+      "n": 934
+    },
+    "education:graduate_school": {
+      "auc": 0.7591,
+      "n": 834
+    },
+    "education:high_school": {
+      "auc": 0.7752,
+      "n": 386
+    },
+    "education:university": {
+      "auc": 0.7884,
+      "n": 1140
+    }
+  }
+}

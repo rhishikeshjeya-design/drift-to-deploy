@@ -19,3 +19,8 @@ dist/
 .vscode/
 .idea/
 .DS_Store
+
+# Local MLflow tracking store and artifacts
+.mlflow/
+mlruns/
+mlartifacts/
