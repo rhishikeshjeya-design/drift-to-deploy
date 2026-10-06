@@ -1,0 +1,33 @@
+# Run with: uv run dvc repro
+stages:
+  download:
+    cmd: d2d data download
+    params:
+      - source
+    outs:
+      - data/raw/credit_default.parquet
+
+  clean:
+    cmd: d2d data clean
+    deps:
+      - data/raw/credit_default.parquet
+      - src/drift_to_deploy/data/schema.py
+    outs:
+      - data/clean/credit_default.parquet
+
+  batches:
+    cmd: d2d data batches
+    deps:
+      - data/clean/credit_default.parquet
+      - src/drift_to_deploy/data/batches.py
+      - src/drift_to_deploy/data/drift.py
+    params:
+      - seed
+      - batches
+      - scenarios
+    outs:
+      - data/batches/reference.parquet
+      - data/batches/months
+      # Small and human-readable, so it's kept in git rather than the DVC cache.
+      - data/batches/summary.json:
+          cache: false

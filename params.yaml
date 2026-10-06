@@ -1,0 +1,41 @@
+# Parameters for the data pipeline (dvc.yaml). Changing any of these re-runs the affected stages.
+
+seed: 42
+
+source:
+  url: https://archive.ics.uci.edu/static/public/350/default+of+credit+card+clients.zip
+  # Pinned so a changed or corrupted upstream file fails loudly instead of silently shifting results.
+  sha256: 56c885f84457f6680f8438f02bfcdac9579323d8a94465ee5f26e32baa727602
+
+batches:
+  # Customers the first model is trained on.
+  reference_size: 12000
+  # Customers then arrive as a stream of monthly batches. The stream leaves some rows
+  # unused on purpose: over-representing a segment (see young_customers) needs spare
+  # customers of that segment to draw from, without reusing anyone.
+  months: 12
+  month_size: 1000
+
+# Each scenario starts at `start_month` and stays in effect for every later month.
+scenarios:
+  # Banks cut credit limits and balances grow. Inputs move; how people default doesn't.
+  - name: income_squeeze
+    kind: covariate
+    start_month: 4
+    limit_bal_factor: 0.7
+    bill_amt_factor: 1.25
+
+  # A marketing push brings in many more young customers.
+  - name: young_customers
+    kind: population
+    start_month: 7
+    age_below: 30
+    share: 0.55
+
+  # A shock: customers near their limit who always paid on time start defaulting.
+  # A relationship the original model never saw.
+  - name: utilisation_shock
+    kind: concept
+    start_month: 10
+    min_utilisation: 0.8
+    flip_probability: 0.3

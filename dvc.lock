@@ -1,0 +1,84 @@
+schema: '2.0'
+stages:
+  download:
+    cmd: d2d data download
+    params:
+      params.yaml:
+        source:
+          url: 
+            https://archive.ics.uci.edu/static/public/350/default+of+credit+card+clients.zip
+          sha256: 
+            56c885f84457f6680f8438f02bfcdac9579323d8a94465ee5f26e32baa727602
+    outs:
+    - path: data/raw/credit_default.parquet
+      hash: md5
+      md5: dd425dd18164edba0905afbf17302406
+      size: 1746602
+  clean:
+    cmd: d2d data clean
+    deps:
+    - path: data/raw/credit_default.parquet
+      hash: md5
+      md5: dd425dd18164edba0905afbf17302406
+      size: 1746602
+    - path: src/drift_to_deploy/data/schema.py
+      hash: md5
+      md5: ffc3e4478d470b1fc4982239ba8daa7e
+      size: 2738
+    outs:
+    - path: data/clean/credit_default.parquet
+      hash: md5
+      md5: 658efde5778d7e2b717a0eb5ea46f640
+      size: 1815807
+  batches:
+    cmd: d2d data batches
+    deps:
+    - path: data/clean/credit_default.parquet
+      hash: md5
+      md5: 658efde5778d7e2b717a0eb5ea46f640
+      size: 1815807
+    - path: src/drift_to_deploy/data/batches.py
+      hash: md5
+      md5: 4d3a5623f29ec77b6df91013e6c5005a
+      size: 4608
+    - path: src/drift_to_deploy/data/drift.py
+      hash: md5
+      md5: 7b4ec9c54f10d03a3d9b4c442e11b32b
+      size: 1643
+    params:
+      params.yaml:
+        batches:
+          reference_size: 12000
+          months: 12
+          month_size: 1000
+        scenarios:
+        - name: income_squeeze
+          kind: covariate
+          start_month: 4
+          limit_bal_factor: 0.7
+          bill_amt_factor: 1.25
+        - name: young_customers
+          kind: population
+          start_month: 7
+          age_below: 30
+          share: 0.55
+        - name: utilisation_shock
+          kind: concept
+          start_month: 10
+          min_utilisation: 0.8
+          flip_probability: 0.3
+        seed: 42
+    outs:
+    - path: data/batches/months
+      hash: md5
+      md5: 16c684427f04d0919608e85b1b197bf9.dir
+      size: 976426
+      nfiles: 12
+    - path: data/batches/reference.parquet
+      hash: md5
+      md5: e9d37a6776322c111735f016326f66db
+      size: 783073
+    - path: data/batches/summary.json
+      hash: md5
+      md5: ed8c03fc92592659caee124a607ace95
+      size: 2492

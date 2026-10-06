@@ -1,0 +1,127 @@
+{
+  "months": [
+    {
+      "month": 1,
+      "rows": 1000,
+      "default_rate": 0.206,
+      "mean_age": 35.74,
+      "mean_limit_bal": 180230.0,
+      "scenarios": []
+    },
+    {
+      "month": 2,
+      "rows": 1000,
+      "default_rate": 0.246,
+      "mean_age": 35.07,
+      "mean_limit_bal": 161450.0,
+      "scenarios": []
+    },
+    {
+      "month": 3,
+      "rows": 1000,
+      "default_rate": 0.212,
+      "mean_age": 35.21,
+      "mean_limit_bal": 168000.0,
+      "scenarios": []
+    },
+    {
+      "month": 4,
+      "rows": 1000,
+      "default_rate": 0.239,
+      "mean_age": 35.66,
+      "mean_limit_bal": 117593.0,
+      "scenarios": [
+        "income_squeeze"
+      ]
+    },
+    {
+      "month": 5,
+      "rows": 1000,
+      "default_rate": 0.228,
+      "mean_age": 35.34,
+      "mean_limit_bal": 120141.0,
+      "scenarios": [
+        "income_squeeze"
+      ]
+    },
+    {
+      "month": 6,
+      "rows": 1000,
+      "default_rate": 0.224,
+      "mean_age": 35.62,
+      "mean_limit_bal": 114482.2,
+      "scenarios": [
+        "income_squeeze"
+      ]
+    },
+    {
+      "month": 7,
+      "rows": 1000,
+      "default_rate": 0.197,
+      "mean_age": 32.4,
+      "mean_limit_bal": 107422.0,
+      "scenarios": [
+        "income_squeeze",
+        "young_customers"
+      ]
+    },
+    {
+      "month": 8,
+      "rows": 1000,
+      "default_rate": 0.229,
+      "mean_age": 32.59,
+      "mean_limit_bal": 101619.0,
+      "scenarios": [
+        "income_squeeze",
+        "young_customers"
+      ]
+    },
+    {
+      "month": 9,
+      "rows": 1000,
+      "default_rate": 0.226,
+      "mean_age": 32.34,
+      "mean_limit_bal": 104265.0,
+      "scenarios": [
+        "income_squeeze",
+        "young_customers"
+      ]
+    },
+    {
+      "month": 10,
+      "rows": 1000,
+      "default_rate": 0.318,
+      "mean_age": 32.18,
+      "mean_limit_bal": 109725.0,
+      "scenarios": [
+        "income_squeeze",
+        "young_customers",
+        "utilisation_shock"
+      ]
+    },
+    {
+      "month": 11,
+      "rows": 1000,
+      "default_rate": 0.294,
+      "mean_age": 32.23,
+      "mean_limit_bal": 106330.0,
+      "scenarios": [
+        "income_squeeze",
+        "young_customers",
+        "utilisation_shock"
+      ]
+    },
+    {
+      "month": 12,
+      "rows": 1000,
+      "default_rate": 0.319,
+      "mean_age": 32.23,
+      "mean_limit_bal": 106211.0,
+      "scenarios": [
+        "income_squeeze",
+        "young_customers",
+        "utilisation_shock"
+      ]
+    }
+  ]
+}
