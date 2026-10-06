@@ -25,8 +25,8 @@ class Tracking:
     artifacts: str | None = None  # None: the tracking server decides
 
 
-def configure(tracking: Tracking | None = None) -> Tracking:
-    """Point MLflow at a tracking store. Defaults to a local SQLite file, or MLFLOW_TRACKING_URI."""
+def connect(tracking: Tracking | None = None) -> Tracking:
+    """Point MLflow at a tracking store, read-only use. Defaults to MLFLOW_TRACKING_URI or a local SQLite file."""
     if tracking is None:
         uri = os.environ.get("MLFLOW_TRACKING_URI")
         if uri:
@@ -38,6 +38,12 @@ def configure(tracking: Tracking | None = None) -> Tracking:
             )
     mlflow.set_tracking_uri(tracking.uri)
     mlflow.set_registry_uri(tracking.uri)
+    return tracking
+
+
+def configure(tracking: Tracking | None = None) -> Tracking:
+    """connect(), plus make sure the experiment that training logs to exists."""
+    tracking = connect(tracking)
     if mlflow.get_experiment_by_name(EXPERIMENT) is None:
         mlflow.create_experiment(EXPERIMENT, artifact_location=tracking.artifacts)
     mlflow.set_experiment(EXPERIMENT)

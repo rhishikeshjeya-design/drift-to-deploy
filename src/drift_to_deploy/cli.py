@@ -50,6 +50,14 @@ def _train(params: Params, args: argparse.Namespace) -> None:
     print(f"Registered {params.model.name} v{result.version} ({result.winner.kind}) as {role}.")
 
 
+def _serve(params: Params, args: argparse.Namespace) -> None:
+    import uvicorn
+
+    from drift_to_deploy.serving.app import ServingSettings, create_app
+
+    uvicorn.run(create_app(ServingSettings(model_name=params.model.name)), host=args.host, port=args.port)
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="d2d", description="drift-to-deploy")
     parser.add_argument("--params", type=Path, default=Path("params.yaml"))
@@ -73,6 +81,11 @@ def main(argv: list[str] | None = None) -> None:
     step.add_argument("--report", type=Path, default=REPORT)
     step.add_argument("--reason", default="initial training")
     step.set_defaults(run=_train)
+
+    step = groups.add_parser("serve", help="run the scoring API")
+    step.add_argument("--host", default="127.0.0.1")
+    step.add_argument("--port", type=int, default=8000)
+    step.set_defaults(run=_serve)
 
     args = parser.parse_args(argv)
     args.run(Params.load(args.params), args)

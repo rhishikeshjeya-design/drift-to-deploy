@@ -7,15 +7,20 @@ requires-python = ">=3.12"
 license = "MIT"
 authors = [{ name = "Rhishikesh Jayakumar" }]
 dependencies = [
+    "fastapi>=0.142.2",
     "lightgbm>=4.7.0",
+    "loguru>=0.7.3",
     "mlflow>=3.16.1",
     "numpy>=1.26",
     "pandas>=2.2",
     "pandera>=0.24",
+    "prometheus-client>=0.26.0",
     "pyarrow>=17",
     "pydantic>=2.8",
+    "pydantic-settings>=2.15.0",
     "pyyaml>=6",
     "scikit-learn>=1.9.1",
+    "uvicorn[standard]>=0.54.0",
     "xlrd>=2.0",
 ]
 
@@ -25,6 +30,7 @@ d2d = "drift_to_deploy.cli:main"
 [dependency-groups]
 dev = [
     "dvc>=3.50",
+    "httpx>=0.28.1",
     "pytest>=8.3",
     "ruff>=0.7",
 ]

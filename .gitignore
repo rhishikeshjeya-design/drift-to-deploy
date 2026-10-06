@@ -24,3 +24,6 @@ dist/
 .mlflow/
 mlruns/
 mlartifacts/
+
+# Local serving state (prediction log)
+.d2d/

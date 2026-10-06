@@ -4,7 +4,7 @@ An automated credit-risk ML lifecycle: a default-prediction model that watches i
 inputs, detects drift, retrains, and is only replaced when a challenger is provably better
 and no customer segment gets worse.
 
-> Work in progress. Data pipeline and training are done; serving, monitoring and promotion
+> Work in progress. Data pipeline, training and serving are done; monitoring and promotion
 > are next.
 
 ## Data pipeline
@@ -70,6 +70,32 @@ How the first champion holds up as the simulated world drifts (scored per month)
 | 1–3 (no drift) | 0.77–0.80 | about 21% vs 21% |
 | 4–9 (income squeeze, young customers) | 0.73–0.79 | overpredicts: about 26% vs 22% |
 | 10–12 (utilisation shock) | about 0.71 | underpredicts: about 25% vs 31% |
+
+## Serving
+
+```bash
+uv run d2d serve        # http://127.0.0.1:8000/docs for the interactive API
+```
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /predict` | score 1 to 1,000 customers; returns default probabilities and the model version |
+| `GET /model` | which version is live, when it was loaded, and its lineage tags |
+| `GET /health`, `GET /ready` | liveness, and readiness (a model is loaded) |
+| `POST /admin/reload` | check the registry now rather than at the next poll |
+| `GET /metrics` | Prometheus: requests, latency, score distribution, live version, reloads |
+
+- **Hot-swap without downtime.** The API polls the registry and, when `champion` moves, loads
+  the new version, checks it scores a known-good input, and only then swaps it in. A request
+  already in flight finishes on the model it started with. If the new version fails to load,
+  the old one keeps serving and the failure is counted in `/metrics`.
+- **Protected attributes never reach the API.** Requests carry a customer ID and the model's
+  inputs only; `sex` or `age` in a request is rejected. Outcomes and demographics are joined
+  back by ID for monitoring, the way a lender keeps them out of the scoring path.
+- **Every prediction is logged** with the exact inputs the model saw, so drift is measured on
+  real traffic rather than on a separately prepared copy of the data.
+- **Validation at the edge.** Inputs are checked against the same rules as the data schema, and
+  a rejected request names the offending field.
 
 ## Data source
 
