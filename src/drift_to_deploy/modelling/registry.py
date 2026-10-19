@@ -6,10 +6,12 @@ which is atomic and keeps a complete history of versions to roll back to.
 """
 
 import os
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
 import mlflow
+import pandas as pd
 from mlflow import MlflowClient
 from mlflow.exceptions import MlflowException
 
@@ -17,6 +19,10 @@ CHAMPION = "champion"
 CHALLENGER = "challenger"
 EXPERIMENT = "credit-default"
 DEFAULT_DIR = Path(".mlflow")
+# Progress bars from artifact downloads are noise in CLI output and logs.
+os.environ.setdefault("MLFLOW_ENABLE_ARTIFACTS_PROGRESS_BAR", "false")
+TRAINING_DATA_DIR = "reference"
+TRAINING_DATA_FILE = "training_data.parquet"
 
 
 @dataclass(frozen=True)
@@ -65,6 +71,24 @@ def set_alias(model_name: str, alias: str, version: str) -> None:
 
 def model_uri(model_name: str, alias: str) -> str:
     return f"models:/{model_name}@{alias}"
+
+
+def training_data(model_name: str, version: str) -> pd.DataFrame:
+    """The input features a model version was trained on, logged alongside it."""
+    run_id = MlflowClient().get_model_version(model_name, version).run_id
+    with tempfile.TemporaryDirectory() as tmp:
+        path = mlflow.artifacts.download_artifacts(
+            run_id=run_id, artifact_path=f"{TRAINING_DATA_DIR}/{TRAINING_DATA_FILE}", dst_path=tmp
+        )
+        return pd.read_parquet(path)
+
+
+def tags(model_name: str, version: str) -> dict[str, str]:
+    return dict(MlflowClient().get_model_version(model_name, version).tags)
+
+
+def load_version(model_name: str, version: str):
+    return mlflow.sklearn.load_model(f"models:/{model_name}/{version}")
 
 
 def load(model_name: str, alias: str = CHAMPION):

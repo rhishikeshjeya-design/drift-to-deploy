@@ -69,5 +69,15 @@ def params() -> Params:
                 "lightgbm": {"n_estimators": 40, "num_leaves": 7, "min_child_samples": 40},
                 "logistic": {"C": 0.5},
             },
+            "monitoring": {
+                "label_lag_months": 1,
+                "column_drift_threshold": 0.1,
+                "drifted_share_alert": 0.25,
+                "score_drift_alert": 0.1,
+                "auc_drop_alert": 0.03,
+                "calibration_gap_alert": 0.04,
+                "min_labelled_rows": 100,
+                "cooldown_months": 2,
+            },
         }
     )

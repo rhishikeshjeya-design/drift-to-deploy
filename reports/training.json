@@ -5,7 +5,7 @@
   "lineage": {
     "data_fingerprint": "076782f766ff43c9",
     "data_rows": "12000",
-    "git_commit": "561b7a5-dirty",
+    "git_commit": "d1c4fb1-dirty",
     "reason": "initial training"
   },
   "candidates": {

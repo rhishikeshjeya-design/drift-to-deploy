@@ -56,3 +56,21 @@ model:
     reg_lambda: 1.0
   logistic:
     C: 0.5
+
+monitoring:
+  # Outcomes arrive late: a month's defaults are only known this many months later.
+  label_lag_months: 2
+  # Per-column drift: Wasserstein distance (numeric) or Jensen-Shannon distance (categorical).
+  column_drift_threshold: 0.1
+  # One drifted column is usually noise; this share of the model's inputs drifting is not.
+  drifted_share_alert: 0.25
+  # Drift in the model's output distribution, on the same distance scale.
+  score_drift_alert: 0.1
+  # Measured once labels arrive, against the serving model's own validation AUC.
+  auc_drop_alert: 0.03
+  # Gap between the predicted and observed default rate.
+  calibration_gap_alert: 0.04
+  # Too few labelled outcomes make AUC noisy.
+  min_labelled_rows: 500
+  # After a retrain, wait this many months before triggering another.
+  cooldown_months: 2

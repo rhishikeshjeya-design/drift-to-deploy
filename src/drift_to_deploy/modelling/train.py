@@ -7,6 +7,7 @@ the registry can be traced back to exactly how it was made.
 import hashlib
 import json
 import subprocess
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -113,6 +114,13 @@ def train(data: pd.DataFrame, params: Params, reason: str = "initial training") 
         )
         version = str(info.registered_model_version)
         mlflow.set_tag("registered_version", version)
+        # The reference for drift monitoring travels with the model: drift is measured against
+        # what this version learned from, so promoting a new model moves the baseline with it.
+        # Model inputs only: no IDs, no protected attributes.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / registry.TRAINING_DATA_FILE
+            data[FEATURES].to_parquet(path, index=False)
+            mlflow.log_artifact(str(path), artifact_path=registry.TRAINING_DATA_DIR)
 
     client = mlflow.MlflowClient()
     for key, value in {**lineage, "candidate": winner.kind, "validation_auc": f"{winner.metrics['auc']:.4f}"}.items():

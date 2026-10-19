@@ -27,3 +27,6 @@ mlartifacts/
 
 # Local serving state (prediction log)
 .d2d/
+
+# Evidently HTML reports are large; the JSON history is kept
+reports/monitoring/*.html

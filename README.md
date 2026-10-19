@@ -4,8 +4,8 @@ An automated credit-risk ML lifecycle: a default-prediction model that watches i
 inputs, detects drift, retrains, and is only replaced when a challenger is provably better
 and no customer segment gets worse.
 
-> Work in progress. Data pipeline, training and serving are done; monitoring and promotion
-> are next.
+> Work in progress. Data pipeline, training, serving and monitoring are done; retraining with
+> gated promotion is next.
 
 ## Data pipeline
 
@@ -96,6 +96,47 @@ uv run d2d serve        # http://127.0.0.1:8000/docs for the interactive API
   real traffic rather than on a separately prepared copy of the data.
 - **Validation at the edge.** Inputs are checked against the same rules as the data schema, and
   a rejected request names the offending field.
+
+## Monitoring
+
+```bash
+uv run d2d serve                       # in one terminal
+uv run d2d traffic --month 4           # send a month's customers to the API
+uv run d2d monitor --month 4           # drift now, performance for the month whose outcomes arrived
+```
+
+Each month is checked twice, because outcomes arrive late (a two-month lag here):
+
+- **Drift, immediately**, on the logged traffic: every input column and the score distribution,
+  with Evidently, against **the data the serving model was trained on**. That reference is
+  stored with each model version, so when a new model is promoted the baseline moves with it.
+  The statistical methods are pinned (Wasserstein / Jensen–Shannon distance) so a threshold
+  means the same thing every month.
+- **Performance, once outcomes arrive**: AUC, predicted vs actual default rate, and AUC per
+  segment (age band, sex, education). Outcomes and demographics are joined back by customer ID;
+  this is the only place protected attributes meet predictions.
+
+The retrain decision is a set of pure, tested rules ([triggers.py](src/drift_to_deploy/monitoring/triggers.py)):
+
+- Input drift alone is an **alert**, not a retrain: there are no outcomes from the new world
+  to learn from yet.
+- **Retrain** when outcomes show the model doing worse (AUC drop, or a calibration gap), or
+  when outcomes arrive for a month that had drifted.
+- A **cooldown** stops retraining from thrashing.
+
+A full replay of the 12 months with the first model ([history.json](reports/monitoring/history.json)):
+
+| Month | Status | Why |
+| --- | --- | --- |
+| 1–3 | ok | no drift; month 1 outcomes: AUC 0.774, calibrated |
+| 4–5 | drift | the income squeeze is caught from inputs straight away (33% of inputs, plus scores) |
+| 6 | retrain | month 4 outcomes arrive: labelled data from the drifted world |
+| 9 | degraded | month 7 outcomes: overpredicting (25% vs 20%). The young-customer surge, invisible in the inputs because age isn't one |
+| 10 | degraded, retrain | month 8 outcomes: AUC 0.050 below validation |
+| 12 | degraded, retrain | month 10 outcomes: AUC 0.706, underpredicting (26% vs 32%). The concept shock: inputs looked like month 9, only outcomes reveal it |
+
+Here no retrain actually runs yet, so requests repeat every two months (the cooldown). The
+next step acts on them.
 
 ## Data source
 

@@ -52,12 +52,24 @@ class ModelParams(BaseModel):
     logistic: dict[str, float | int] = Field(default_factory=dict)
 
 
+class MonitoringParams(BaseModel):
+    label_lag_months: int = Field(ge=0)
+    column_drift_threshold: float = Field(gt=0)
+    drifted_share_alert: float = Field(gt=0, le=1)
+    score_drift_alert: float = Field(gt=0)
+    auc_drop_alert: float = Field(gt=0)
+    calibration_gap_alert: float = Field(gt=0)
+    min_labelled_rows: int = Field(gt=0)
+    cooldown_months: int = Field(ge=0)
+
+
 class Params(BaseModel):
     seed: int
     source: Source
     batches: Batches
     scenarios: list[Scenario] = Field(default_factory=list)
     model: ModelParams
+    monitoring: MonitoringParams
 
     @classmethod
     def load(cls, path: Path = Path("params.yaml")) -> "Params":
